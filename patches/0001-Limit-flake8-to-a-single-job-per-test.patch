@@ -1,0 +1,30 @@
+From 8d08d2ff0e72b600d3ac35fdf22deb9d500f5bb4 Mon Sep 17 00:00:00 2001
+From: Tim Jenness <tim.jenness@gmail.com>
+Date: Mon, 29 Oct 2018 15:29:19 -0700
+Subject: [PATCH] Limit flake8 to a single job per test
+
+Without this change flake8 creates many subprocesses every time
+it is invoked. This causes significant overhead and slows down
+test execution. In conjunction with pytest-xdist many hundreds
+of additional flake8 processes can be created which causes
+significant load issues.
+---
+ pytest_flake8.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/pytest_flake8.py b/pytest_flake8.py
+index f379e40..2261857 100644
+--- a/pytest_flake8.py
++++ b/pytest_flake8.py
+@@ -178,6 +178,8 @@ def check_file(path, flake8ignore, maxlength, maxcomplexity,
+         args += ['--show-source']
+     if statistics:
+         args += ['--statistics']
++    # One file per flake8 call so limit flake8 to one job
++    args += ['--jobs', "1"]
+     app = application.Application()
+     app.parse_preliminary_options_and_args(args)
+     app.make_config_finder()
+-- 
+2.19.1
+
